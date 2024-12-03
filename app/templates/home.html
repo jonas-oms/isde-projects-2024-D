@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <p style="margin-top:1cm;">This service provides the output scores for popular deep networks
+        from the 
+            Torchvision model zoo. Go
+        <a href={{url_for("create_classify")}}>here</a> for
+        trying out the service.</p>
+    <p style="margin-top:1cm;">For the list of models and images
+        available, click
+        <a href={{url_for("info")}}>here</a>.</p>
+{% endblock %}

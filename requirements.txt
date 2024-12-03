@@ -1,0 +1,6 @@
+fastapi[all]
+torch
+torchvision
+requests
+Pillow
+python-multipart
