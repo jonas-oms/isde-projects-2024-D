@@ -1,5 +1,6 @@
 import json
 from fastapi import FastAPI, Request
+import matplotlib.pyplot as plt
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -68,7 +69,35 @@ async def download_results(image_id: str, scores: str):
 
         with open(output_filepath, "w") as f:
             json.dump({"image_id": image_id, "classification_scores": classification_data}, f, indent=4)
+
         return FileResponse(output_filepath, media_type="application/json", filename=output_filename)
+
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+@app.get("/download_plot")
+async def download_plot(image_id: str, scores: str):
+    """Generates and returns a bar chart (PNG) of classification results."""
+    try:
+        classification_data = json.loads(scores)
+
+        labels = [item[0] for item in classification_data]
+        values = [item[1] for item in classification_data]
+
+        output_filename = f"classification_plot_{image_id}.png"
+        output_filepath = os.path.join("app/static", output_filename)
+
+        plt.figure(figsize=(8, 5))
+        plt.barh(labels[::-1], values[::-1], color=["green", "red", "orange", "blue", "purple"])
+        plt.xlabel("Confidence Score (%)")
+        plt.title(f"Classification Results for {image_id}")
+        plt.xlim(0, 100)  # Confidence scores are in percentage
+        plt.tight_layout()
+
+        plt.savefig(output_filepath)
+        plt.close()
+
+        return FileResponse(output_filepath, media_type="image/png", filename=output_filename)
 
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
