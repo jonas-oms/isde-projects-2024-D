@@ -1,12 +1,13 @@
 import json
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.config import Configuration
 from app.forms.classification_form import ClassificationForm
 from app.ml.classification_utils import classify_image
 from app.utils import list_images
+import os
 
 
 app = FastAPI()
@@ -55,3 +56,19 @@ async def request_classification(request: Request):
             "classification_scores": json.dumps(classification_scores),
         },
     )
+
+@app.get("/download_results")
+async def download_results(image_id: str, scores: str):
+    """Generates and returns a JSON file containing classification results."""
+    try:
+        classification_data = json.loads(scores)
+
+        output_filename = f"classification_results_{image_id}.json"
+        output_filepath = os.path.join("app/static", output_filename)
+
+        with open(output_filepath, "w") as f:
+            json.dump({"image_id": image_id, "classification_scores": classification_data}, f, indent=4)
+        return FileResponse(output_filepath, media_type="application/json", filename=output_filename)
+
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
