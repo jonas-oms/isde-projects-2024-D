@@ -59,7 +59,7 @@ async def request_classification(request: Request):
     )
 
 
-@app.get("/image-transformation")
+@app.get("/transformation")
 def create_transformation(request: Request):
     """
     Give the wanted page to the user
@@ -73,7 +73,7 @@ def create_transformation(request: Request):
     )
 
 
-@app.post("/image-transformation")
+@app.post("/transformation")
 async def request_transformation(request: Request):
     """
     Create the transformed image with the given parameters of the request before sending it
@@ -96,13 +96,13 @@ async def request_transformation(request: Request):
             {"request": request, "images": list_images(), "errors": form.errors},
         )
 
-    transformed_image = transform_image(image_id, color, brightness, contrast, sharpness)
+    transform_image(image_id, color, brightness, contrast, sharpness, "transformed_image")
 
     return templates.TemplateResponse(
         "transformation_output.html",
         {
             "request": request,
             "image_id": image_id,
-            "transformed_image": transformed_image,
+            "transformed_image": "transformed_image",
         },
     )
