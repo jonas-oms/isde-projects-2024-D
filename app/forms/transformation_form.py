@@ -1,14 +1,16 @@
 from fastapi import Request
 
 
-"""
-Allow the given image to be transformed with the given parameters
-"""
 class TransformationForm:
     """
-    TransformationForm controller
+    Allow the given image to be transformed with the given parameters
     """
     def __init__(self, request: Request) -> None:
+        """
+        TransformationForm controller
+
+        :param request: Request the received request
+        """
         self.request: Request = request
         self.errors: list = []
         self.image_id: str = ""
@@ -19,10 +21,11 @@ class TransformationForm:
         self.sharpness: float = 0.0
 
 
-    """
-    Save the parameters wanted for the transformation
-    """
     async def load_data(self):
+        """
+        Save the parameters wanted for the transformation
+        Use the request to get the result of the form filled by the user
+        """
         form = await self.request.form()
         self.image_id = form.get("image_id")
 
@@ -32,10 +35,12 @@ class TransformationForm:
         self.sharpness = form.get("sharpness")
 
 
-    """
-    Check the validity of each value of the TransformationForm object
-    """
     def is_valid(self):
+        """
+        Check the validity of each value of the TransformationForm object
+
+        :return: Boolean true if there isn't error, false otherwise
+        """
         if not self.image_id or not isinstance(self.image_id, str):
             self.errors.append("A valid image id is required")
         if not self.color or not isinstance(self.color, str):
