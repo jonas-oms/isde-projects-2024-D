@@ -55,3 +55,16 @@ async def request_classification(request: Request):
             "classification_scores": json.dumps(classification_scores),
         },
     )
+
+
+@app.get("/histogram", response_class=HTMLResponse)
+def create_histogram(request: Request):
+    """Displays the form for selecting an image."""
+    return templates.TemplateResponse(
+        "histogram.html",
+        {"request": request, "images": list_images()}
+    )
+
+@app.post("/histogram")
+async def request_histogram(request: Request):
+    pass
