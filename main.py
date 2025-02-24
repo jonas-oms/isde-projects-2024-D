@@ -8,6 +8,9 @@ from app.forms.classification_form import ClassificationForm
 from app.ml.classification_utils import classify_image
 from app.utils import list_images
 
+from fastapi import UploadFile, File
+from pathlib import Path
+
 
 app = FastAPI()
 config = Configuration()
@@ -55,3 +58,8 @@ async def request_classification(request: Request):
             "classification_scores": json.dumps(classification_scores),
         },
     )
+
+@app.get("/upload")
+def upload_page(request: Request):
+    """Shows the upload page (similar to classification API)."""
+    return templates.TemplateResponse("upload.html", {"request": request})
