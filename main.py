@@ -1,6 +1,6 @@
 import json
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request, UploadFile, File, Form
+from fastapi.responses import HTMLResponse ,JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.config import Configuration
@@ -8,8 +8,9 @@ from app.forms.classification_form import ClassificationForm
 from app.ml.classification_utils import classify_image
 from app.utils import list_images
 
-from fastapi import UploadFile, File
 from pathlib import Path
+
+
 
 
 
@@ -60,7 +61,35 @@ async def request_classification(request: Request):
         },
     )
 
-@app.get("/upload")
+
+@app.get("/upload", response_class=HTMLResponse)
 def upload_page(request: Request):
-    """Shows the upload page (similar to classification API)."""
-    return templates.TemplateResponse("upload.html", {"request": request})
+    """Shows the upload page with model selection."""
+    return templates.TemplateResponse("upload.html", {"request": request, "models": Configuration.models})
+
+@app.post("/upload")
+async def upload_image(request: Request, file: UploadFile = File(...), model: str = Form(...)):
+    """Saves the uploaded image and passes it to the selected classification model."""
+    UPLOAD_FOLDER = "app/static/imagenet_subset"
+    Path(UPLOAD_FOLDER).mkdir(parents=True, exist_ok=True)
+
+    # Speichern des Bildes
+    file_location = Path(UPLOAD_FOLDER) / file.filename
+    with open(file_location, "wb") as buffer:
+        buffer.write(await file.read())
+
+    # Prüfen, ob das ausgewählte Modell gültig ist
+    if model not in Configuration.models:
+        return JSONResponse(status_code=400, content={"error": "Invalid model selected"})
+
+    # Klassifikation mit dem gewählten Modell starten
+    classification_scores = classify_image(model_id=model, img_id=file.filename)
+
+    return templates.TemplateResponse(
+        "classification_output.html",
+        {
+            "request": request,
+            "image_id": file.filename,
+            "classification_scores": json.dumps(classification_scores),
+        },
+    )
