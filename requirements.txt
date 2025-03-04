@@ -4,3 +4,4 @@ torchvision
 requests
 Pillow
 python-multipart
+matplotlib
