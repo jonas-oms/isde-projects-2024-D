@@ -5,9 +5,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.config import Configuration
 from app.forms.classification_form import ClassificationForm
-from app.forms.histogram_form import HistogramForm
+from app.forms.transformation_form import TransformationForm
 from app.ml.classification_utils import classify_image
+from app.ml.transformation_utils import transform_image
+from app.forms.histogram_form import HistogramForm
 from app.utils import list_images,generate_histogram,get_image_path
+
 
 
 app = FastAPI()
@@ -58,6 +61,54 @@ async def request_classification(request: Request):
     )
 
 
+@app.get("/transformation")
+def create_transformation(request: Request):
+    """
+    Give the wanted page to the user
+
+    :param request: Request the request asking for the page
+    :return: TemplateResponse containing the page with the list of images
+    """
+    return templates.TemplateResponse(
+        "transformation_select.html",
+        {"request": request, "images": list_images()},
+    )
+
+
+@app.post("/transformation")
+async def request_transformation(request: Request):
+    """
+    Create the transformed image with the given parameters of the request before sending it
+
+    :param request: Request the request asking for the transformed page
+    :return: TemplateResponse containing the result page with the image and its transformed version
+    """
+    form = TransformationForm(request)
+    await form.load_data()
+
+    image_id = form.image_id
+    color = form.color
+    brightness = form.brightness
+    contrast = form.contrast
+    sharpness = form.sharpness
+
+    if not form.is_valid():
+        return templates.TemplateResponse(
+            "transformation_select.html",
+            {"request": request, "images": list_images(), "errors": form.errors},
+        )
+
+    transform_image(image_id, color, brightness, contrast, sharpness, "transformed_image")
+
+    return templates.TemplateResponse(
+        "transformation_output.html",
+        {
+            "request": request,
+            "image_id": image_id,
+            "transformed_image": "transformed_image",
+        },
+    )
+
 @app.get("/histogram", response_class=HTMLResponse)
 def create_histogram(request: Request):
     """Displays the form for selecting an image."""
@@ -82,3 +133,4 @@ async def request_histogram(request: Request):
         "histogram_output.html",
         {"request": request, "image_id": form.image_id, "histogram_data": histogram}
     )
+

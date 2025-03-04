@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <style>
+        .large-front-thumbnail {
+            position: relative;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <img class="large-front-thumbnail"
+                     src="{{ 'static/imagenet_subset/'+image_id }} "
+                     alt={{ image_id }}
+                />
+            </div>
+            <div class="card">
+                <img class="large-front-thumbnail"
+                     src="{{ 'static/'+transformed_image+'.jpg' }} "
+                     alt={{ transformed_image }}
+                />
+            </div>
+        </div>
+        <div class="col">
+            <a class="btn btn-primary" href="/transformation" role="button">Back</a>
+        </div>
+    </div>
+
+{% endblock %}
