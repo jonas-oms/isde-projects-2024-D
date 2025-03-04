@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <h1>Select image and its parameters</h1>
+    <form method="post" novalidate>
+        <h4>
+            Image:
+        </h4>
+        <p>
+            <select name="image_id">
+                {% for image in images %}
+                  <option value="{{ image }}" SELECTED>{{ image }}</option>
+                {% endfor %}     
+              </select>
+        </p>
+
+        <h4>
+            Color:
+        </h4>
+        <p>
+            <input type="number" name="color" min="0" max="1" step=".1" value="1" />
+        </p>
+        <h4>
+            Brightness:
+        </h4>
+        <p>
+            <input type="number" name="brightness" min="0" max="1" step=".1" value="1" />
+        </p>
+        <h4>
+            Contrast:
+        </h4>
+        <p>
+            <input type="number" name="contrast" min="0" max="1" step=".1" value="1" />
+        </p>
+        <h4>
+            Sharpness:
+        </h4>
+        <p>
+            <input type="number" name="sharpness" min="0" max="1" step=".1" value="1" />
+        </p>
+
+        <button type="submit" class="btn btn-dark mb-2">Submit</button>
+    </form>
+{% endblock %}
