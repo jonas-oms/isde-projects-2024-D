@@ -193,7 +193,7 @@ async def request_transformation(request: Request):
 def create_histogram(request: Request):
     """Displays the form for selecting an image."""
     return templates.TemplateResponse(
-        "histogram.html",
+        "histogram_select.html",
         {"request": request, "images": list_images()}
     )
 
@@ -204,7 +204,7 @@ async def request_histogram(request: Request):
     await form.load_data()
 
     if not form.is_valid():
-        return templates.TemplateResponse("histogram.html", {"request": request, "errors": form.errors})
+        return templates.TemplateResponse("histogram_select.html", {"request": request, "errors": form.errors})
 
     image_path = get_image_path(form.image_id)
     histogram = generate_histogram(image_path)
