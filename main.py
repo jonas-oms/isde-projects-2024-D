@@ -91,7 +91,7 @@ async def download_plot(image_id: str, scores: str):
         labels = [item[0] for item in classification_data]
         values = [item[1] for item in classification_data]
 
-        output_filename = f"classification_plot_{image_id}.png"
+        output_filename = f"classification_plot_{os.path.splitext(image_id)[0]}.png"
         output_filepath = os.path.join("app/static", output_filename)
 
         plt.figure(figsize=(8, 5))
