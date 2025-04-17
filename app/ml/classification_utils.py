@@ -16,6 +16,10 @@ from app.config import Configuration
 conf = Configuration()
 
 
+def delete_transformed(name):
+    os.remove("app/static/"+str(name)+".jpg")
+
+
 def fetch_image(image_id):
     """Gets the image from the specified ID. It returns only images
     downloaded in the folder specified in the configuration object."""

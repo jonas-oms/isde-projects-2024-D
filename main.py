@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 from app.config import Configuration
 from app.forms.classification_form import ClassificationForm
 from app.forms.transformation_form import TransformationForm
-from app.ml.classification_utils import classify_image
+from app.ml.classification_utils import classify_image, delete_transformed
 import os
 from app.ml.transformation_utils import transform_image
 from app.forms.histogram_form import HistogramForm
@@ -179,13 +179,17 @@ async def upload_image(request: Request, file: UploadFile = File(...), model: st
     return response
   
 @app.get("/transformation")
-def create_transformation(request: Request):
+def create_transformation(request: Request, todelete = ""):
     """
     Give the wanted page to the user
 
     :param request: Request the request asking for the page
+    :param todelete: the document name to delete
     :return: TemplateResponse containing the page with the list of images
     """
+    if todelete != "":
+        delete_transformed(todelete)
+
     return templates.TemplateResponse(
         "transformation_select.html",
         {"request": request, "images": list_images()},
@@ -215,14 +219,15 @@ async def request_transformation(request: Request):
             {"request": request, "images": list_images(), "errors": form.errors},
         )
 
-    transform_image(image_id, color, brightness, contrast, sharpness, "transformed_image")
+    img_name = str(uuid4())
+    transform_image(image_id, color, brightness, contrast, sharpness, img_name)
 
     return templates.TemplateResponse(
         "transformation_output.html",
         {
             "request": request,
             "image_id": image_id,
-            "transformed_image": "transformed_image",
+            "transformed_image": img_name,
         },
     )
 
