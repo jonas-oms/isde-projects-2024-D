@@ -115,31 +115,68 @@ def upload_page(request: Request):
     """Shows the upload page with model selection."""
     return templates.TemplateResponse("upload.html", {"request": request, "models": Configuration.models})
 
+from uuid import uuid4
+from PIL import UnidentifiedImageError
+
 @app.post("/upload")
 async def upload_image(request: Request, file: UploadFile = File(...), model: str = Form(...)):
-    """Saves the uploaded image and passes it to the selected classification model."""
+    """Saves the uploaded image and passes it to the selected classification model with error handling and cleanup."""
     UPLOAD_FOLDER = "app/static/imagenet_subset"
     Path(UPLOAD_FOLDER).mkdir(parents=True, exist_ok=True)
 
-    
-    file_location = Path(UPLOAD_FOLDER) / file.filename
-    with open(file_location, "wb") as buffer:
-        buffer.write(await file.read())
+    # Generate unique filename
+    unique_filename = f"{uuid4().hex}_{file.filename}"
+    file_path = Path(UPLOAD_FOLDER) / unique_filename
 
-
+    # Validate model
     if model not in Configuration.models:
-        return JSONResponse(status_code=400, content={"error": "Invalid model selected"})
+        return templates.TemplateResponse(
+            "error.html",
+            {"request": request, "error": "Invalid model selected."},
+            status_code=400,
+        )
 
-    classification_scores = classify_image(model_id=model, img_id=file.filename)
+    try:
+        # Save file
+        with open(file_path, "wb") as buffer:
+            buffer.write(await file.read())
 
-    return templates.TemplateResponse(
-        "classification_output.html",
-        {
-            "request": request,
-            "image_id": file.filename,
-            "classification_scores": json.dumps(classification_scores),
-        },
-    )
+        # Try classification
+        classification_scores = classify_image(model_id=model, img_id=unique_filename)
+
+        # Render result
+        response = templates.TemplateResponse(
+            "classification_output.html",
+            {
+                "request": request,
+                "image_id": unique_filename,
+                "classification_scores": json.dumps(classification_scores),
+            },
+        )
+
+    except UnidentifiedImageError:
+        if file_path.exists():
+            file_path.unlink()
+        return templates.TemplateResponse(
+            "error.html",
+            {"request": request, "error": "The uploaded file is not a valid image."},
+            status_code=400,
+        )
+
+    except Exception as e:
+        if file_path.exists():
+            file_path.unlink()
+        return templates.TemplateResponse(
+            "error.html",
+            {"request": request, "error": f"An unexpected error occurred: {str(e)}"},
+            status_code=500,
+        )
+
+    # Delete file after processing
+    if file_path.exists():
+        file_path.unlink()
+
+    return response
   
 @app.get("/transformation")
 def create_transformation(request: Request):
