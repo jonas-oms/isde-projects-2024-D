@@ -15,6 +15,8 @@ from app.ml.transformation_utils import transform_image
 from app.forms.histogram_form import HistogramForm
 from app.utils import list_images,generate_histogram,get_image_path
 from pathlib import Path
+from uuid import uuid4
+import tempfile
 
 
 app = FastAPI()
@@ -64,20 +66,19 @@ async def request_classification(request: Request):
         },
     )
 
-
 @app.get("/download_results")
 async def download_results(image_id: str, scores: str):
     """Generates and returns a JSON file containing classification results."""
     try:
         classification_data = json.loads(scores)
 
-        output_filename = f"classification_results_{image_id}.json"
-        output_filepath = os.path.join("app/static", output_filename)
+        unique_name = f"classification_results_{uuid4().hex}.json"
+        tmp_path = os.path.join(tempfile.gettempdir(), unique_name)
 
-        with open(output_filepath, "w") as f:
+        with open(tmp_path, "w") as f:
             json.dump({"image_id": image_id, "classification_scores": classification_data}, f, indent=4)
 
-        return FileResponse(output_filepath, media_type="application/json", filename=output_filename)
+        return FileResponse(tmp_path, media_type="application/json", filename=unique_name)
 
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
@@ -91,8 +92,8 @@ async def download_plot(image_id: str, scores: str):
         labels = [item[0] for item in classification_data]
         values = [item[1] for item in classification_data]
 
-        output_filename = f"classification_plot_{os.path.splitext(image_id)[0]}.png"
-        output_filepath = os.path.join("app/static", output_filename)
+        unique_name = f"classification_plot_{uuid4().hex}.png"
+        output_filepath = os.path.join(tempfile.gettempdir(), unique_name)
 
         plt.figure(figsize=(8, 5))
         plt.barh(labels[::-1], values[::-1], color=["green", "red", "orange", "blue", "purple"])
@@ -104,7 +105,7 @@ async def download_plot(image_id: str, scores: str):
         plt.savefig(output_filepath)
         plt.close()
 
-        return FileResponse(output_filepath, media_type="image/png", filename=output_filename)
+        return FileResponse(output_filepath, media_type="image/png", filename=unique_name)
 
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
