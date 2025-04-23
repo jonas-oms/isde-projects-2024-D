@@ -18,6 +18,9 @@ from pathlib import Path
 from uuid import uuid4
 import tempfile
 
+# Fixing Bug as mentioned
+import matplotlib
+matplotlib.use("agg")
 
 app = FastAPI()
 config = Configuration()
